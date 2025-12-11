@@ -1,11 +1,13 @@
 import express from "express"
 import "dotenv/config"
 import { sql } from "./config/db.js";
+import rateLimiter from "./middleware/rateLimiter.js";
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(rateLimiter)
 
 const PORT = process.env.PORT || 5001;
 
@@ -115,7 +117,7 @@ app.get("/api/transactions/summary/:userId", async (request, response) => {
     console.log("Error in getting the summary: ", error);
     response.status(500).json({ message: "Internal Server Error!" });
   }
-})
+});
 
 initDB().then(() => {
   app.listen(PORT, () => {
