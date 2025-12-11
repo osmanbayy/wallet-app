@@ -27,6 +27,23 @@ async function initDB() {
   }
 }
 
+app.get("/api/transactions/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+
+    const transactions = await sql`
+      SELECT * FROM transactions WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+    `;
+
+    response.status(200).json(transactions);
+
+  } catch (error) {
+    console.log("Error in getting the transactions: ", error);
+    response.status(500).json({ message: "Internal Server Error!" });
+  }
+});
+
 app.post("/api/transactions", async (request, response) => {
   try {
     const { title, amount, category, user_id } = request.body;
@@ -40,10 +57,31 @@ app.post("/api/transactions", async (request, response) => {
       RETURNING *
     `;
 
-    console.log(transaction);
     response.status(201).json(transaction[0])
   } catch (error) {
     console.log("Error in creating transaction: ", error);
+    response.status(500).json({ message: "Internal Server Error!" });
+  }
+});
+
+app.delete("/api/transactions/:id", async (request, response) => {
+  try {
+    const { id } = request.params
+    if (isNaN(parseInt(id))) {
+      return response.status(400).json({ message: "Invalid transaction ID!" });
+    }
+
+    const result = await sql`
+      DELETE FROM transactions WHERE id = ${id}
+      RETURNING *
+    `;
+    if (result.length === 0) {
+      return response.status(404).json({ message: "Transaction not found!" })
+    }
+
+    response.status(200).json({ message: "Transaction deleted successfully!" })
+  } catch (error) {
+    console.log("Error in deleting the transactions: ", error);
     response.status(500).json({ message: "Internal Server Error!" });
   }
 });
