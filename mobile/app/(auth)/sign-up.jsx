@@ -14,6 +14,7 @@ export default function SignUpScreen() {
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -23,6 +24,10 @@ export default function SignUpScreen() {
     if (!isLoaded) return;
 
     // Start sign-up process using email and password provided
+    if (!emailAddress || !password || emailAddress === "" || password === "") {
+      setError("All fields are required!");
+      return;
+    }
     try {
       await signUp.create({
         emailAddress,
@@ -36,9 +41,13 @@ export default function SignUpScreen() {
       // and capture OTP code
       setPendingVerification(true);
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      if (err.errors?.[0]?.code === "form_identifier_exists") {
+        setError(
+          "That email adress is already in use. Please try another email account."
+        );
+      } else {
+        setError("An error occured. Please try again.");
+      }
     }
   };
 
@@ -68,6 +77,8 @@ export default function SignUpScreen() {
       console.error(JSON.stringify(err, null, 2));
     }
   };
+
+  const handleShowPassword = () => setShowPassword((prev) => !prev);
 
   if (pendingVerification) {
     return (
@@ -131,14 +142,23 @@ export default function SignUpScreen() {
           placeholderTextColor={"#9A8478"}
           onChangeText={(email) => setEmailAddress(email)}
         />
-        <TextInput
-          style={[styles.input, error && styles.errorInput]}
-          value={password}
-          placeholder="Enter password"
-          placeholderTextColor={"#9A8478"}
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
+        <View style={{ position: "relative" }}>
+          <TextInput
+            value={password}
+            style={[styles.input, error && styles.errorInput]}
+            placeholder="Enter password"
+            placeholderTextColor={"#9A8478"}
+            secureTextEntry={showPassword ? false : true}
+            onChangeText={(password) => setPassword(password)}
+          />
+          <Ionicons
+            style={styles.passwordInputIcon}
+            name={showPassword ? "eye" : "eye-off"}
+            size={24}
+            color={COLORS.primary}
+            onPress={handleShowPassword}
+          />
+        </View>
         <TouchableOpacity onPress={onSignUpPress} style={styles.button}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>

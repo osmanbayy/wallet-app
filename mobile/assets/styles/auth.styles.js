@@ -34,6 +34,11 @@ export const styles = StyleSheet.create({
   errorInput: {
     borderColor: COLORS.expense,
   },
+  passwordInputIcon: {
+    position: "absolute",
+    right: 15,
+    top: "20%",
+  },
   button: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
